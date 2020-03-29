@@ -53,7 +53,7 @@ class Proxify {
                 return objectToProxify[ property ];
             },
             set: (objectToProxify, property, value) => {
-                if (isProxy(value)) {
+                if (Proxify.isProxy(value)) {
                     value.$addParent(self, property);
                     objectToProxify[ property ] = value;
                 }
@@ -73,7 +73,8 @@ class Proxify {
 
     $setWithoutDispatch(key, value) {
         this.objectToProxify[ key ] = valueToProxify(value, key, this);
-        this._watch[ key ].forEach((callback) => callback(value));
+        if (this._watch[ key ])
+            this._watch[ key ].forEach((callback) => callback(value));
     }
 
     $watch(key, callback) {
@@ -94,16 +95,17 @@ class Proxify {
     }
 }
 
-function isProxy(object) {
-    return typeof object === 'object' && object.$isProxy;
+Proxify.isProxy = function isProxy(object) {
+    return typeof object === 'object' && !!object.$isProxy;
 }
 
 function valueToProxify(value, key, parent) {
-    if (typeof value === 'object' && !isProxy(value)) {
+    if (typeof value === 'object' && !Proxify.isProxy(value)) {
         return new Proxify(value, key, parent);
     }
     return value;
 }
 
-if (typeof module !== 'undefined')
+if (typeof module !== 'undefined') {
     module.exports = Proxify;
+}
